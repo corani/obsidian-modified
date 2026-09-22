@@ -54,8 +54,7 @@ For per-file **created** timestamp, in priority order:
 
 1. `created` frontmatter (`YYYY-MM-DD`, `YYYY-MM-DD HH:mm`, `YYYY-MM-DDTHH:mm:ss`,
    `YYYY-MM-DDTHH:mm:ss+HH:mm`)
-2. `date` frontmatter (`YYYY-MM-DD` only)
-3. `file.stat.ctime` (milliseconds epoch via `TFile.stat.ctime`)
+2. `file.stat.ctime` (milliseconds epoch via `TFile.stat.ctime`)
 
 For per-file **modified** timestamp, in priority order:
 
@@ -138,8 +137,9 @@ obsidian-modified/
 ```ts
 interface BlockConfig {
   period: "day" | "week" | "month";
-  limit?: number;       // undefined = all
+  limit?: number;
   title?: string;
+  showTitle?: boolean;
   date?: string;
 }
 ```
@@ -154,7 +154,9 @@ interface ResolvedFile {
 
 interface ResolvedPeriod {
   created: ResolvedFile[];
+  createdTotal: number;
   modified: ResolvedFile[];  // created date outside period, modified date inside
+  modifiedTotal: number;
 }
 
 function resolveFiles(
@@ -191,28 +193,13 @@ class ModifiedBlock extends MarkdownRenderChild {
 
 Renders:
 
-1. Optional plain-text title as `<div class="modified-title">` heading
+1. Optional plain-text title heading (bold markdown)
 2. `[!success]-` callout for Created entries (omit if empty)
 3. `[!seealso]-` callout for Modified entries (omit if empty)
-4. Each entry: `<li>` with `<a class="internal-link">` linking to file
+4. Each entry as `[[file.path|displayTitle]]` wikilink
 
-Callouts are built as raw DOM matching Obsidian's callout HTML structure so they render
-with native collapse behavior:
-
-```html
-<div data-callout="success" data-callout-fold="-" class="callout is-collapsible is-collapsed">
-  <div class="callout-title">
-    <div class="callout-icon">...</div>
-    <div class="callout-title-inner">Created</div>
-    <div class="callout-fold">...</div>
-  </div>
-  <div class="callout-content">
-    <ul>
-      <li><a class="internal-link" href="..." data-href="...">Display Title</a></li>
-    </ul>
-  </div>
-</div>
-```
+Callout markdown is passed to `MarkdownRenderer.render()` so Obsidian's native collapse
+behavior, styling, and link resolution all work without manual DOM construction.
 
 ### `settings.ts`
 
@@ -227,21 +214,21 @@ Identical to obsidian-one-line and obsidian-birthdays. `dist/` symlinked to
 ## Implementation Phases
 
 ### Phase 1 -- Scaffold
-- [ ] `manifest.json`, `package.json`, `tsconfig.json`, `esbuild.config.mjs`, `.gitignore`
-- [ ] `src/settings.ts`, `src/parser.ts`, `src/main.ts`
-- [ ] Verify plugin loads
+- [x] `manifest.json`, `package.json`, `tsconfig.json`, `esbuild.config.mjs`, `.gitignore`
+- [x] `src/settings.ts`, `src/parser.ts`, `src/main.ts`
+- [x] Verify plugin loads
 
 ### Phase 2 -- Resolver
-- [ ] `src/resolver.ts` -- anchor date resolution, per-file date parsing, period filtering
-- [ ] Display title resolution (`name` → `title` → `aliases[0]` → basename)
-- [ ] Exclusion list, sorting, limit
+- [x] `src/resolver.ts` -- anchor date resolution, per-file date parsing, period filtering
+- [x] Display title resolution (`name` → `title` → `aliases[0]` → basename)
+- [x] Exclusion list, sorting, limit
 
 ### Phase 3 -- Renderer
-- [ ] `src/renderer.ts` -- title heading, collapsed callouts, internal links
-- [ ] `styles.css` -- minimal styles for the title heading
-- [ ] Test all three period modes
+- [x] `src/renderer.ts` -- title heading, collapsed callouts, internal links
+- [x] `styles.css` -- minimal styles for the title heading
+- [x] Test all three period modes
 
 ### Phase 4 -- Polish
-- [ ] Error card for missing/invalid config or unresolvable anchor date
-- [ ] Empty state: omit empty callouts entirely
-- [ ] Re-render on vault `modify` events
+- [x] Error card for missing/invalid config or unresolvable anchor date
+- [x] Empty state: omit empty callouts entirely
+- [x] Re-render on vault `modify` events
