@@ -24,19 +24,31 @@ function isExcluded(path: string): boolean {
 
 // Parse a date/datetime frontmatter string to a Date, or null if unparseable.
 // Accepts: YYYY-MM-DD, YYYY-MM-DD HH:mm, YYYY-MM-DDTHH:mm:ss, YYYY-MM-DDTHH:mm:ss+HH:mm
+// Bare YYYY-MM-DD is parsed as local time to avoid UTC midnight → previous day in UTC+ zones.
 function parseFrontmatterDate(value: unknown): Date | null {
 	if (!value) return null;
 	const s = String(value).trim();
 	if (!s) return null;
-	// Normalise "YYYY-MM-DD HH:mm" (space separator) to ISO
+	// Bare date: parse as local time
+	const bare = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (bare) {
+		const d = new Date(+bare[1], +bare[2] - 1, +bare[3]);
+		return isNaN(d.getTime()) ? null : d;
+	}
+	// Datetime with space separator: normalise to ISO
 	const normalised = s.replace(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}.*)$/, "$1T$2");
 	const d = new Date(normalised);
 	return isNaN(d.getTime()) ? null : d;
 }
 
-// Strip time from a Date for day-level comparisons
-function toDay(d: Date): string {
-	return d.toISOString().slice(0, 10);
+// Format a Date as YYYY-MM-DD in local time
+function toLocalDay(d: Date): string {
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Format a Date as YYYY-MM in local time
+function toLocalMonth(d: Date): string {
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
 // ISO week string "YYYY-Www" for a given Date
@@ -48,18 +60,14 @@ function isoWeek(d: Date): string {
 	return `${thursday.getFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-// YYYY-MM string for a given Date
-function toMonth(d: Date): string {
-	return d.toISOString().slice(0, 7);
-}
-
 // Resolve anchor date from block config + context note frontmatter + filename
 export function resolveAnchorDate(app: App, contextPath: string, config: BlockConfig): Date | null {
 	// 1. Block config date
 	if (config.date) {
-		const raw = config.date.toLowerCase() === "today" ? new Date().toISOString().slice(0, 10) : config.date;
-		const d = new Date(raw);
-		if (!isNaN(d.getTime())) return d;
+		const d = config.date.toLowerCase() === "today"
+			? new Date()
+			: parseFrontmatterDate(config.date);
+		if (d) return d;
 	}
 
 	// 2. Context note frontmatter: created then date
@@ -74,11 +82,10 @@ export function resolveAnchorDate(app: App, contextPath: string, config: BlockCo
 		}
 	}
 
-	// 3. Filename
+	// 3. Filename (all local-time)
 	const stem = contextPath.split("/").pop()?.replace(/\.md$/, "") ?? "";
-	if (/^\d{4}-\d{2}-\d{2}$/.test(stem)) {
-		const d = new Date(stem); if (!isNaN(d.getTime())) return d;
-	}
+	const bare = stem.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (bare) return new Date(+bare[1], +bare[2] - 1, +bare[3]);
 	const wm = stem.match(/^(\d{4})-W(\d{2})$/);
 	if (wm) {
 		const year = +wm[1], week = +wm[2];
@@ -126,9 +133,9 @@ function getDisplayTitle(app: App, file: TFile): string {
 
 // Returns true if the date string/value matches the anchor period
 function inPeriod(date: Date, anchor: Date, period: "day" | "week" | "month"): boolean {
-	if (period === "day")   return toDay(date) === toDay(anchor);
+	if (period === "day")   return toLocalDay(date) === toLocalDay(anchor);
 	if (period === "week")  return isoWeek(date) === isoWeek(anchor);
-	return toMonth(date) === toMonth(anchor);
+	return toLocalMonth(date) === toLocalMonth(anchor);
 }
 
 export function resolveFiles(
