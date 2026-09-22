@@ -1,0 +1,52 @@
+/* Error card -- uses ol-block pattern */
+.ol-block {
+	padding: var(--size-4-3);
+	margin: var(--size-4-2) 0;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-primary);
+}
+
+.ol-block__header {
+	display: flex;
+	align-items: center;
+	margin-bottom: var(--size-4-2);
+	padding-bottom: var(--size-4-2);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.ol-block__title {
+	font-weight: var(--font-semibold);
+	font-size: var(--font-ui-medium);
+	color: var(--text-normal);
+}
+
+.ol-block__content {
+	font-size: var(--font-ui-small);
+}
+
+.ol-block--error {
+	border-color: var(--color-red);
+	background: var(--background-modifier-error);
+}
+
+.ol-block__error {
+	color: var(--color-red);
+}
+
+.modified-empty {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+/* Tighten list padding inside callout content */
+.callout-content ul {
+	margin: 0 !important;
+	padding-top: var(--size-4-1) !important;
+	padding-bottom: 0 !important;
+}
+
+/* Space between consecutive callouts */
+.callout + .callout {
+	margin-top: var(--size-4-3) !important;
+}

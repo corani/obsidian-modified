@@ -1,0 +1,9 @@
+{
+	"id": "obsidian-modified",
+	"name": "Modified",
+	"version": "0.1.0",
+	"minAppVersion": "1.4.0",
+	"description": "Dynamic blocks listing notes created or modified within a given period.",
+	"author": "Daniel Bos",
+	"isDesktopOnly": false
+}
