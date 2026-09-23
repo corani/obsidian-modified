@@ -56,7 +56,7 @@ export class ModifiedBlock extends MarkdownRenderChild {
 		}
 
 		if (result.created.length > 0) {
-			lines.push(`> [!success]- Created`);
+			lines.push(`> [!success]- Created (${result.createdTotal})`);
 			for (const f of result.created) {
 				lines.push(`> - [[${f.file.path}|${f.displayTitle}]]`);
 			}
@@ -67,7 +67,7 @@ export class ModifiedBlock extends MarkdownRenderChild {
 		}
 
 		if (result.modified.length > 0) {
-			lines.push(`> [!seealso]- Modified`);
+			lines.push(`> [!seealso]- Modified (${result.modifiedTotal})`);
 			for (const f of result.modified) {
 				lines.push(`> - [[${f.file.path}|${f.displayTitle}]]`);
 			}
